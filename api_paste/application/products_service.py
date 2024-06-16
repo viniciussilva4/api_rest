@@ -3,7 +3,7 @@ from sqlalchemy import delete
 from sqlmodel import Session, delete, select
 
 from persistence.db_utils import get_engine
-from presentation.viewmodels.models import Products
+from presentation.viewmodels.models import Products, ProductsUpdate
 
 
 class ProductsService:
@@ -27,6 +27,11 @@ class ProductsService:
 
         query = select(Products).where(Products.id == id)
         product = self.session.exec(query).first()
+        
+        if not product:
+
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Produto não encontrado')
+
         self.session.close()
 
         return product
@@ -42,13 +47,9 @@ class ProductsService:
         return product
     
 
-    def update_product(self, id: int, product: Products):
+    def update_product(self, id: int, product: ProductsUpdate):
 
         current_product = self.get_product_by_id(id)
-
-        if not current_product:
-
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Produto não encontrado!')
         
         if product.description:
 
@@ -89,11 +90,6 @@ class ProductsService:
     def delete_product(self, id: int):
 
         product = self.get_product_by_id(id)
-    
-        if not product:
-
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Produto não encontrado!')
-        
         query = delete(Products).where(Products.id == id)
         self.session.exec(query)
         self.session.commit()

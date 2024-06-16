@@ -3,7 +3,7 @@ from sqlalchemy import delete
 from sqlmodel import Session, delete, select
 
 from persistence.db_utils import get_engine
-from presentation.viewmodels.models import Clients
+from presentation.viewmodels.models import Clients, ClientsUpdate
 
 class ClientsService:
 
@@ -15,7 +15,7 @@ class ClientsService:
 
     def get_all_clients(self):
         
-        query = select(Clients)
+        query = select(Clients)       
         clients = self.session.exec(query).fetchall()
         self.session.close()
         
@@ -26,6 +26,11 @@ class ClientsService:
 
         query = select(Clients).where(Clients.id == id)
         client = self.session.exec(query).first()
+
+        if not client:
+
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Cliente não encontrado!')
+
         self.session.close()
 
         return client
@@ -41,46 +46,37 @@ class ClientsService:
         return client
     
 
-    def update_client(self, id: int, client: Clients):
+    def update_client(self, id: int, client: ClientsUpdate):
 
         current_client = self.get_client_by_id(id)
 
-        if not current_client:
-
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Cliente não encontrado!')
-        
-        if client.description:
-
-            current_client.description = client.description
-        
         if client.name:
             
             current_client.name = client.name
+
 
         if client.email:
             
             current_client.email = client.email
 
+
         if client.cpf:
             
             current_client.cpf = client.cpf
+
 
         self.session.add(current_client)
         self.session.commit()
         self.session.refresh(current_client)
         self.session.close()
 
+
         return current_client
     
     
     def delete_client(self, id: int):
 
-        client = self.get_client_by_id(id)
-    
-        if not client:
-
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Cliente não encontrado!')
-        
+        client = self.get_client_by_id(id)  
         query = delete(Clients).where(Clients.id == id)
         self.session.exec(query)
         self.session.commit()

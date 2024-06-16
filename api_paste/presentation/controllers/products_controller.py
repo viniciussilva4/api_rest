@@ -20,11 +20,7 @@ async def get_products():
 @router.get('/{id}', status_code = status.HTTP_200_OK, response_model = ProductsRead)
 async def get_product(id: int):
 
-    product = products_service.get_product_by_id(id)
-
-    if not product:
-
-        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Produto não encontrado!') 
+    product = products_service.get_product_by_id(id) 
 
     return product
 
@@ -36,7 +32,7 @@ async def post_product(product: Products):
 
 
 @router.put('/{id}', status_code = status.HTTP_200_OK, response_model = ProductsRead)
-def up_product(id: int, product: Products):
+def up_product(id: int, product: ProductsUpdate):
 
     return products_service.update_product(id, product)
 

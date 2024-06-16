@@ -36,7 +36,7 @@ async def post_client(client: Clients):
 
 
 @router.put('/{id}', status_code = status.HTTP_200_OK, response_model = ClientsRead)
-def up_client(id: int, client: Clients):
+def up_client(id: int, client: ClientsUpdate):
 
     return clients_service.update_client(id, client)
 
