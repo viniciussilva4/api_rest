@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+from fastapi import Depends
 
 from application.clients_service import ClientsService
 from persistence.db_utils import get_engine
-from presentation.viewmodels.models import *
+from presentation.viewmodels.models import Clients, ClientsRead, ClientsUpdate
 
 engine = get_engine()
 
@@ -20,13 +22,7 @@ async def get_clients():
 @router.get('/{id}', status_code = status.HTTP_200_OK, response_model = ClientsRead)
 async def get_client(id: int):
 
-    client = clients_service.get_client_by_id(id)
-
-    if not client:
-
-        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Cliente não encontrado!') 
-
-    return client
+    return clients_service.get_client_by_id(id)
 
 
 @router.post('/', status_code = status.HTTP_201_CREATED, response_model = ClientsRead)

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from application.products_service import ProductsService
 from persistence.db_utils import get_engine
-from presentation.viewmodels.models import *
+from presentation.viewmodels.models import Products, ProductsRead, ProductsUpdate
 
 engine = get_engine()
 
@@ -20,9 +20,7 @@ async def get_products():
 @router.get('/{id}', status_code = status.HTTP_200_OK, response_model = ProductsRead)
 async def get_product(id: int):
 
-    product = products_service.get_product_by_id(id) 
-
-    return product
+    return products_service.get_product_by_id(id) 
 
 
 @router.post('/', status_code = status.HTTP_201_CREATED, response_model = ProductsRead)

@@ -1,7 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy import delete
 from sqlmodel import Session, delete, select
-from sqlalchemy.orm import joinedload
 
 from persistence.db_utils import get_engine
 from presentation.viewmodels.models import Orders, OrdersCreate, OrderProductLink, OrdersUpdate

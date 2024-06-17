@@ -1,11 +1,63 @@
 from sqlmodel import Field, SQLModel, Column, Relationship
 from datetime import date
 from sqlalchemy import DECIMAL, Column, ForeignKey
-from sqlalchemy.orm import joinedload
 from typing import Optional, List
+from enum import Enum
 
 
-class OrderProductLink(SQLModel, table=True):
+class Token(SQLModel):
+
+    access_token: str
+    token_type: str
+
+
+class LoginData(SQLModel):
+
+    login: Optional[str] = None
+    password: Optional[str] = None
+
+
+class UsersRole(str, Enum):
+
+    manager = "manager"
+    functionary = "functionary"
+
+
+class UsersBase(SQLModel):
+
+    id: int = Field(default = None, primary_key = True)
+
+
+class Users(UsersBase, table = True):
+
+    id: int = Field(default = None, primary_key = True)
+    name: str = Field(default = None, max_length = 50, nullable = False)
+    login: str = Field(default = None, max_length = 50, nullable = False)
+    password: str = Field(default = None, nullable = False)
+    status: bool = Field(default = True)
+    role: UsersRole  = Field(default = "functionary", nullable = False)
+
+
+class UsersRead(UsersBase):
+
+    id: int
+    name: str 
+    login: str
+    password: str
+    status: bool
+    role: UsersRole
+
+
+class UsersCreate(UsersBase):
+
+    name: str
+    login: str
+    password: str
+    status: bool = True
+    role: UsersRole
+
+
+class OrderProductLink(SQLModel, table = True):
     
     id: int = Field(default = None, primary_key = True)
     order_id: Optional[int] = Field(default = None, sa_column = Column(ForeignKey("orders.id", ondelete = "CASCADE")))
