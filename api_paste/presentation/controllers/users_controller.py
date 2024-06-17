@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends
 
-from application.auth_service import UsersService
+from application.users_service import UsersService
 from persistence.db_utils import get_engine
 from presentation.viewmodels.models import Token, LoginData, Users, UsersRead, UsersCreate
 from security.validators import verify_role, verify_status

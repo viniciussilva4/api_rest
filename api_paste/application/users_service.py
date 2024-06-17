@@ -54,6 +54,8 @@ class UsersService:
 
         token = create_access_token(user)
 
+        self.session.close()
+
         return {'access_token': token, 'token_type': 'Bearer'}
     
 
@@ -73,6 +75,8 @@ class UsersService:
         except jwt.JWTError:
 
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail = 'Token inválido ou expirado!')
+        
+        self.session.close()
         
         return user
 

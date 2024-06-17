@@ -194,3 +194,11 @@ class ProductsUpdate(SQLModel):
     initial_inventory: Optional[int] = None
     expiration_date: Optional[date] = None
     image: Optional[str] = None
+
+
+class PaginatedProducts(SQLModel):
+
+    items: List[ProductsRead]
+    total: int
+    page: int
+    page_size: int

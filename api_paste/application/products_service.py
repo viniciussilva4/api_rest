@@ -23,6 +23,15 @@ class ProductsService:
         return products
     
 
+    def count_products(self):
+        
+        query = select(Products)
+        products = self.session.exec(query).fetchall()
+        self.session.close()
+        
+        return len(products)
+    
+
     def get_product_by_id(self, id: int):
 
         query = select(Products).where(Products.id == id)
