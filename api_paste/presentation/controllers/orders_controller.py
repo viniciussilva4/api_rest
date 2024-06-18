@@ -60,7 +60,7 @@ def get_ordering(atributes: Optional[str] = None, order: Optional[str] = None):
 
 
 @router.get('/', status_code = status.HTTP_200_OK, response_model = Page[OrdersRead])
-async def get_orders(ordering = Depends(get_ordering), current_user: Users = Depends(users_service.get_current_user)):
+async def get_orders(current_user: Users = Depends(users_service.get_current_user), ordering = Depends(get_ordering)):
 
     verify_status(current_user)
 
