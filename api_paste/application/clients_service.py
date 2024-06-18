@@ -13,10 +13,16 @@ class ClientsService:
         self.session = Session(get_engine())
 
 
-    def get_all_clients(self):
-        
-        query = select(Clients)       
-        clients = self.session.exec(query).fetchall()
+    def get_all_clients(self, ordering = None):
+    
+        if not ordering:
+
+            clients = self.session.query(Clients)
+
+        else:            
+
+            clients = self.session.query(Clients).order_by(*ordering)
+
         self.session.close()
         
         return clients

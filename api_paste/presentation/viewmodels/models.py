@@ -1,6 +1,6 @@
 from sqlmodel import Field, SQLModel, Column, Relationship
 from datetime import date
-from sqlalchemy import DECIMAL, Column, ForeignKey
+from sqlalchemy import DECIMAL, Column, ForeignKey, asc, desc
 from typing import Optional, List
 from enum import Enum
 

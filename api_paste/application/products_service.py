@@ -14,10 +14,17 @@ class ProductsService:
         self.session = Session(get_engine())
 
 
-    def get_all_products(self):
-        
-        query = select(Products)
-        products = self.session.exec(query).fetchall()
+    def get_all_products(self, ordering = None):
+
+
+        if not ordering:
+
+            products = self.session.query(Products)
+
+        else:            
+
+            products = self.session.query(Products).order_by(*ordering)
+
         self.session.close()
         
         return products

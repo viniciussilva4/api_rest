@@ -1,4 +1,8 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
+from sqlalchemy import asc, desc
+from typing import Optional
 
 from application.clients_service import ClientsService
 from application.users_service import UsersService
@@ -15,12 +19,52 @@ prefix = '/clients'
 clients_service = ClientsService()
 users_service = UsersService()
 
-@router.get('/', status_code = status.HTTP_200_OK, response_model = list[ClientsRead])
-async def get_clients(current_user: Users = Depends(users_service.get_current_user)):
+
+def get_ordering(atributes: Optional[str] = None, order: Optional[str] = None):
+
+    if atributes == None or order == None:
+
+        return None
+
+    atributes = atributes.split(',')
+
+    order = order.split(',')
+
+    if len(atributes) != len(order):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'Requisição mal realizada!')
+    
+    order_params = []
+
+    try:
+    
+        for index in range(len(atributes)):
+
+            if order[index].strip() != 'asc' and order[index].strip() != 'desc':
+
+                raise AttributeError
+            
+            elif order[index].strip() == 'asc':
+
+                order_params.append(asc(getattr(Clients, atributes[index].strip())))
+
+            else:
+
+                order_params.append(desc(getattr(Clients, atributes[index].strip())))
+
+    except AttributeError:
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'Requisição mal realizada!')
+
+    return order_params
+
+
+@router.get('/', status_code = status.HTTP_200_OK, response_model = Page[ClientsRead])
+async def get_clients(ordering = Depends(get_ordering), current_user: Users = Depends(users_service.get_current_user)):
 
     verify_status(current_user)
 
-    return clients_service.get_all_clients()
+    return paginate(clients_service.get_all_clients(ordering))
 
 
 @router.get('/{id}', status_code = status.HTTP_200_OK, response_model = ClientsRead)

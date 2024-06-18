@@ -18,10 +18,16 @@ class OrdersService:
         self.session = Session(get_engine())
 
 
-    def get_all_orders(self):
+    def get_all_orders(self, ordering = None):
         
-        query = select(Orders)
-        orders = self.session.exec(query).fetchall()
+        if not ordering:
+
+            orders = self.session.query(Orders)
+
+        else:            
+
+            orders = self.session.query(Orders).order_by(*ordering)
+            
         for order in orders:
             self.session.refresh(order, attribute_names = ["products"])
         self.session.close()
