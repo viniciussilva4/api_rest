@@ -14,16 +14,89 @@ class ProductsService:
         self.session = Session(get_engine())
 
 
-    def get_all_products(self, ordering = None):
+    def get_all_products(self, 
+                         ordering = None, 
+                         section = None,
+                         bar_code = None, 
+                         min_price_of_sell = None, 
+                         max_price_of_sell = None, 
+                         min_initial_inventory = None, 
+                         max_initial_inventory = None, 
+                         min_expiration_date = None, 
+                         max_expiration_date = None):
 
 
         if not ordering:
 
             products = self.session.query(Products)
 
-        else:            
+            if section:       
+
+                products = products.filter(Products.section == section)
+
+            if bar_code:       
+
+                products = products.filter(Products.bar_code == bar_code)
+
+            if min_price_of_sell:       
+
+                products = products.filter(Products.price_of_sell >= min_price_of_sell)
+
+            if max_price_of_sell:       
+
+                products = products.filter(Products.price_of_sell <= max_price_of_sell)
+
+            if min_initial_inventory:       
+
+                products = products.filter(Products.initial_inventory >= min_initial_inventory)
+
+            if max_initial_inventory:       
+
+                products = products.filter(Products.price_of_sell <= max_initial_inventory)
+
+            if min_expiration_date:       
+
+                products = products.filter(Products.expiration_date >= min_expiration_date)
+
+            if max_expiration_date:       
+
+                products = products.filter(Products.expiration_date <= max_expiration_date)
+
+        else:     
 
             products = self.session.query(Products).order_by(*ordering)
+
+            if section:       
+
+                products = products.filter(Products.section == section)
+
+            if bar_code:       
+
+                products = products.filter(Products.bar_code == bar_code)
+
+            if min_price_of_sell:       
+
+                products = products.filter(Products.price_of_sell >= min_price_of_sell)
+
+            if max_price_of_sell:       
+
+                products = products.filter(Products.price_of_sell <= max_price_of_sell)
+
+            if min_initial_inventory:       
+
+                products = products.filter(Products.initial_inventory >= min_initial_inventory)
+
+            if max_initial_inventory:       
+
+                products = products.filter(Products.price_of_sell <= max_initial_inventory)
+
+            if min_expiration_date:       
+
+                products = products.filter(Products.expiration_date >= min_expiration_date)
+
+            if max_expiration_date:       
+
+                products = products.filter(Products.expiration_date <= max_expiration_date)
 
         self.session.close()
         

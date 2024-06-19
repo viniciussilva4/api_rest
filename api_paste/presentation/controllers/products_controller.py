@@ -1,8 +1,9 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Query
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import asc, desc
 from typing import Optional
+from datetime import date
 
 from application.products_service import ProductsService
 from application.users_service import UsersService
@@ -60,11 +61,28 @@ def get_ordering(atributes: Optional[str] = None, order: Optional[str] = None):
 
 
 @router.get('/', status_code = status.HTTP_200_OK, response_model = Page[ProductsRead])
-async def get_products(current_user: Users = Depends(users_service.get_current_user), ordering = Depends(get_ordering)):
+async def get_products(current_user: Users = Depends(users_service.get_current_user), 
+                       ordering = Depends(get_ordering), 
+                       section: Optional[str] = Query(None), 
+                       bar_code: Optional[str] = Query(None), 
+                       min_price_of_sell: Optional[float] = Query(None), 
+                       max_price_of_sell: Optional[float] = Query(None), 
+                       min_initial_inventory: Optional[int] = Query(None), 
+                       max_initial_inventory: Optional[int] = Query(None), 
+                       min_expiration_date: Optional[date] = Query(None), 
+                       max_expiration_date: Optional[date] = Query(None)):
 
     verify_status(current_user)
 
-    return paginate(products_service.get_all_products(ordering))
+    return paginate(products_service.get_all_products(ordering, 
+                                                      section, 
+                                                      bar_code, 
+                                                      min_price_of_sell, 
+                                                      max_price_of_sell, 
+                                                      min_initial_inventory, 
+                                                      max_initial_inventory, 
+                                                      min_expiration_date, 
+                                                      max_expiration_date))
 
 
 @router.get('/count', status_code = status.HTTP_200_OK, response_model = int)
