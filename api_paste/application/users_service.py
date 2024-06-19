@@ -1,9 +1,9 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 from fastapi import HTTPException, status, Depends
 from jose import jwt
 
 from persistence.db_utils import get_engine
-from presentation.viewmodels.models import Users, UsersCreate, UsersRole, LoginData, Token
+from presentation.viewmodels.models import Users, UsersCreate, UsersRole, LoginData, Token, UsersUpdate
 from security.hash_provider import hash, verify
 from security.token_provider import create_access_token, SECRET_KEY, ALGORITHM
 
@@ -14,6 +14,26 @@ class UsersService:
     def __init__(self):
 
         self.session = Session(get_engine())
+
+    def get_all_users(self, name = None, status = None, role = None, ):
+
+        user = self.session.query(Users)
+
+        if name:       
+
+            user = user.filter(Users.name == name)
+
+        if status:       
+
+            user = user.filter(Users.status == status)
+
+        if role:       
+
+            user = user.filter(Users.role == role)
+
+        self.session.close()
+        
+        return user
 
 
     def get_user_by_id(self, id: int):
@@ -74,7 +94,7 @@ class UsersService:
 
         except jwt.JWTError:
 
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail = 'Token inválido ou expirado!')
+            raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = 'Token inválido ou expirado!')
         
         self.session.close()
         
@@ -100,4 +120,49 @@ class UsersService:
         self.session.commit()
         self.session.refresh(user_db)
         self.session.close()
+
         return user_db
+    
+
+    def update_user(self, id: int, user: UsersUpdate):
+
+        current_user = self.get_user_by_id(id)
+        
+        if user.name:
+            
+            current_user.name = user.name
+
+        if user.login:
+            
+            current_user.login = user.login
+
+        if user.password:
+            
+            current_user.password = hash(user.password)
+
+        if user.status:
+            
+            current_user.status = user.status
+
+        if user.role:
+            
+            current_user.role = user.role
+
+        self.session.add(current_user)
+        self.session.commit()
+        self.session.refresh(current_user)
+        self.session.close()
+
+        return current_user
+    
+
+    def delete_user(self, id: int):
+
+        user = self.get_user_by_id(id)
+        query = delete(Users).where(Users.id == id)
+        self.session.exec(query)
+        self.session.commit()
+        self.session.close()
+
+        return user
+    

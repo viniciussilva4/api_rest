@@ -1,13 +1,18 @@
 from fastapi import HTTPException, status
 from sqlalchemy import delete
 from sqlmodel import Session, delete, select
+from contextlib import contextmanager
 
 from persistence.db_utils import get_engine
-from presentation.viewmodels.models import Orders, OrdersCreate, OrderProductLink, OrdersUpdate
-from .products_service import ProductsService
+from presentation.viewmodels.models import Orders, OrdersCreate, OrderProductLink, OrdersUpdate, Products
 
-
-products_service = ProductsService()
+@contextmanager
+def get_session(self):
+    session = self.Session()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 class OrdersService:
@@ -18,19 +23,66 @@ class OrdersService:
         self.session = Session(get_engine())
 
 
-    def get_all_orders(self, ordering = None):
+    def get_all_orders(self, 
+                       ordering = None, 
+                       min_period = None, 
+                       max_period = None, 
+                       products_section = None, 
+                       status = None, 
+                       client_id = None):
         
         if not ordering:
 
             orders = self.session.query(Orders)
 
+            if min_period:
+
+                orders = orders.filter(Orders.period >= min_period)
+
+            if max_period:
+
+                orders = orders.filter(Orders.period <= max_period)
+
+            if products_section:
+
+                orders = orders.filter(Orders.products_section == products_section)
+
+            if status:
+
+                orders = orders.filter(Orders.status == status)
+
+            if client_id:
+
+                orders = orders.filter(Orders.client_id == client_id)
+
         else:            
 
             orders = self.session.query(Orders).order_by(*ordering)
+
+            if min_period:
+
+                orders = orders.filter(Orders.period >= min_period)
+
+            if max_period:
+
+                orders = orders.filter(Orders.period <= max_period)
+
+            if products_section:
+
+                orders = orders.filter(Orders.products_section == products_section)
+
+            if status:
+
+                orders = orders.filter(Orders.status == status)
+
+            if client_id:
+
+                orders = orders.filter(Orders.client_id == client_id)
             
         for order in orders:
             self.session.refresh(order, attribute_names = ["products"])
         self.session.close()
+        
         return orders
     
 
@@ -55,7 +107,12 @@ class OrdersService:
 
         for index in range(len(order.products)):
 
-            product = products_service.get_product_by_id(order.products[index])
+            query = select(Products).where(Products.id == order.products[index])
+            product = self.session.exec(query).first()
+        
+            if not product:
+
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Produto não encontrado')
 
             if product.initial_inventory < order.quantity[index]:
 
@@ -88,8 +145,6 @@ class OrdersService:
             self.session.add(orderproductlink)
 
         self.session.commit()
-
-        self.session.close()
 
         return order_db
     

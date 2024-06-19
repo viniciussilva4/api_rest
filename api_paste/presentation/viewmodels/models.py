@@ -25,7 +25,7 @@ class UsersRole(str, Enum):
 
 class UsersBase(SQLModel):
 
-    id: int = Field(default = None, primary_key = True)
+    name: str = Field(default = None, max_length = 50, nullable = False)
 
 
 class Users(UsersBase, table = True):
@@ -40,10 +40,14 @@ class Users(UsersBase, table = True):
 
 class UsersRead(UsersBase):
 
+    name: str 
+    status: bool
+    role: UsersRole
+
+class UsersReadId(UsersBase):
+
     id: int
     name: str 
-    login: str
-    password: str
     status: bool
     role: UsersRole
 
@@ -55,6 +59,15 @@ class UsersCreate(UsersBase):
     password: str
     status: bool = True
     role: UsersRole
+
+
+class UsersUpdate(UsersBase):
+
+    name: Optional[str] = None
+    login: Optional[str] = None
+    password: Optional[str] = None
+    status: Optional[bool] = None
+    role: Optional[UsersRole] = None
 
 
 class OrderProductLink(SQLModel, table = True):
@@ -70,7 +83,7 @@ class OrderProductLink(SQLModel, table = True):
 
 class ClientsBase(SQLModel):
 
-    id: int = Field(default = None, primary_key = True)
+    name: str = Field(default = None, max_length = 50, nullable = False)
 
 
 class Clients(ClientsBase, table = True):
@@ -100,7 +113,7 @@ class ClientsUpdate(SQLModel):
 
 class OrdersBase(SQLModel):
 
-    id: int = Field(default = None, primary_key = True)
+    products_section: str = Field(default = 'ProductDefaultSection')
 
 
 class Orders(OrdersBase, table = True):
@@ -117,7 +130,7 @@ class Orders(OrdersBase, table = True):
 
 class OrdersRead(OrdersBase):
 
-    id: int 
+    id: int
     period: Optional[date]
     products_section: str
     status: bool
@@ -158,7 +171,6 @@ class ProductsBase(SQLModel):
 class Products(ProductsBase, table = True):
 
     id: int = Field(default = None, primary_key = True)
-    description: str = Field(default = 'ProductDefaultDescription')
     price_of_sell: float = Field(default = 0.00, sa_column = Column(DECIMAL(10, 2)))
     bar_code: str = Field(default = '0000000000000', max_length = 13, unique = True, nullable = False)
     section: str = Field(default = 'ProductDefaultSection')
@@ -176,7 +188,8 @@ class Products(ProductsBase, table = True):
 
 class ProductsRead(ProductsBase):
 
-    description: str
+
+    id: int
     price_of_sell: float
     bar_code: str
     section: str
@@ -187,7 +200,6 @@ class ProductsRead(ProductsBase):
 
 class ProductsUpdate(SQLModel):
 
-    description: Optional[str] = None
     price_of_sell: Optional[float] = None
     bar_code: Optional[str] = None
     section: Optional[str] = None

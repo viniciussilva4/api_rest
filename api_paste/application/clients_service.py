@@ -13,15 +13,43 @@ class ClientsService:
         self.session = Session(get_engine())
 
 
-    def get_all_clients(self, ordering = None):
+    def get_all_clients(self, 
+                        ordering = None, 
+                        cpf = None, 
+                        email = None, 
+                        name = None):
     
         if not ordering:
 
             clients = self.session.query(Clients)
 
+            if cpf:
+
+                clients = clients.filter(Clients.cpf == cpf)
+
+            if email:
+
+                clients = clients.filter(Clients.email == email)
+
+            if name:
+
+                clients = clients.filter(Clients.name == name)
+
         else:            
 
             clients = self.session.query(Clients).order_by(*ordering)
+
+            if cpf:
+
+                clients = clients.filter(Clients.cpf == cpf)
+
+            if email:
+
+                clients = clients.filter(Clients.email == email)
+
+            if name:
+
+                clients = clients.filter(Clients.name == name)
 
         self.session.close()
         
