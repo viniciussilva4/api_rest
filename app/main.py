@@ -26,9 +26,11 @@ app = FastAPI()
 add_pagination(app)
 app.add_middleware(RollbarMiddleware)
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'Requisição mal feita!')
+#@app.exception_handler(RequestValidationError)
+
+#async def validation_exception_handler(request: Request, exc: RequestValidationError):
+
+    #raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'Erro na requisição')
 
 engine = get_engine()
 SQLModel.metadata.create_all(engine)

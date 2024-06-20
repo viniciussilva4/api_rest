@@ -286,6 +286,22 @@ async def post_product(product: Products, current_user: Users = Depends(users_se
     verify_status(current_user)
     verify_role(current_user)
 
+    if not re.match(r'^\d{1,10}(.\d{1,2})?$', str(product.price_of_sell)):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Preço de venda com formatação errada!")
+
+    if not re.match(r'^\d{13}$', product.bar_code):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Código de barras com formatação errada!")
+
+    if not re.match(r'^\d+$', str(product.initial_inventory)):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Estoque com formatação errada!")
+
+    if not re.match(r'^(?:(?:19|20)\d{2})-(?:(?:0[1-9]|1[0-2]))-(?:(?:0[1-9]|[12]\d|3[01]))$', product.expiration_date):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Data de validade com formatação errada!")
+
     return products_service.create_product(product)
 
 

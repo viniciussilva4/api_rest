@@ -324,7 +324,7 @@ async def del_user(id: int, current_user: Users = Depends(users_service.get_curr
 @router.post('/firstuser', status_code = status.HTTP_201_CREATED, response_model = UsersRead)
 async def first_user(user: UsersCreate, secret_key: str):
 
-    if secret_key == str(SECRET_KEY_USER):
+    if secret_key == SECRET_KEY_USER:
 
         return users_service.create_user(user)
     

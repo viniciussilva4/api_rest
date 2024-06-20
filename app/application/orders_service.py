@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete
 from sqlmodel import Session, delete, select
 from contextlib import contextmanager
+from sqlalchemy.exc import IntegrityError
 
 from persistence.db_utils import get_engine
 from presentation.viewmodels.models import Orders, OrdersCreate, OrderProductLink, OrdersUpdate, Products
@@ -103,50 +104,60 @@ class OrdersService:
 
     def create_order(self, order: OrdersCreate):
 
-        products_list = []
+        try:
 
-        for index in range(len(order.products)):
+            products_list = []
 
-            query = select(Products).where(Products.id == order.products[index])
-            product = self.session.exec(query).first()
+            for index in range(len(order.products)):
+
+                query = select(Products).where(Products.id == order.products[index])
+                product = self.session.exec(query).first()
+            
+                if not product:
+
+                    self.session.rollback()
+
+                    raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Produto não encontrado')
+
+                if product.initial_inventory < order.quantity[index]:
+
+                    raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f'Produto de id {product.id} insuficiente!')
+                
+                product.initial_inventory -= order.quantity[index]
+                
+                products_list.append(product)
+
+            for product_up in products_list:
+
+                self.session.add(product_up)
+
+            self.session.commit()
+
+            order_db = Orders(period = order.period, products_section = order.products_section, status = order.status, client_id = order.client)
+
+            self.session.add(order_db)
+            self.session.commit()
+            self.session.refresh(order_db)
+
+            orderproductlink_list = []
+
+            for index in range(len(order.products)):
+
+                orderproductlink_list.append(OrderProductLink(order_id = order_db.id, product_id = order.products[index], quantity = order.quantity[index]))
+
+            for orderproductlink in orderproductlink_list:
+
+                self.session.add(orderproductlink)
+
+            self.session.commit()
+
+            return order_db
         
-            if not product:
+        except IntegrityError:
 
-                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Produto não encontrado')
+            self.session.rollback()
 
-            if product.initial_inventory < order.quantity[index]:
-
-                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f'Produto de id {product.id} insuficiente!')
-            
-            product.initial_inventory -= order.quantity[index]
-            
-            products_list.append(product)
-
-        for product_up in products_list:
-
-            self.session.add(product_up)
-
-        self.session.commit()
-
-        order_db = Orders(period = order.period, products_section = order.products_section, status = order.status, client_id = order.client)
-
-        self.session.add(order_db)
-        self.session.commit()
-        self.session.refresh(order_db)
-
-        orderproductlink_list = []
-
-        for index in range(len(order.products)):
-
-            orderproductlink_list.append(OrderProductLink(order_id = order_db.id, product_id = order.products[index], quantity = order.quantity[index]))
-
-        for orderproductlink in orderproductlink_list:
-
-            self.session.add(orderproductlink)
-
-        self.session.commit()
-
-        return order_db
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'Cliente não encontrado ou erro na requisição!')
     
 
     def update_order(self, id: int, order: OrdersUpdate):

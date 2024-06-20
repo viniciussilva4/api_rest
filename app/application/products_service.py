@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy import delete
 from sqlmodel import Session, delete, select
+from sqlalchemy.exc import IntegrityError
 
 from persistence.db_utils import get_engine
 from presentation.viewmodels.models import Products, ProductsUpdate
@@ -119,12 +120,20 @@ class ProductsService:
     
     def create_product(self, product: Products):
 
-        self.session.add(product)
-        self.session.commit()
-        self.session.refresh(product)
-        self.session.close()
+        try:
 
-        return product
+            self.session.add(product)
+            self.session.commit()
+            self.session.refresh(product)
+            self.session.close()
+
+            return product
+        
+        except IntegrityError:
+
+            self.session.rollback()
+
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'Código de barras já cadastrado ou erro na requisição!')
     
 
     def update_product(self, id: int, product: ProductsUpdate):

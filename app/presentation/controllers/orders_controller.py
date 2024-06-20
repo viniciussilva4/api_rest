@@ -303,6 +303,18 @@ async def post_orders(order: OrdersCreate, current_user: Users = Depends(users_s
     verify_status(current_user)
     verify_role(current_user)
 
+    if not re.match(r'^(?:(?:19|20)\d{2})-(?:(?:0[1-9]|1[0-2]))-(?:(?:0[1-9]|[12]\d|3[01]))$', str(order.period)):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Data com formatação errada!")
+
+    if not re.match(r'^(?i:true|false)$', str(order.status)):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "Status com formatação errada!")
+
+    if not re.match(r'^(0|[1-9]\d*)$', str(order.client)):
+
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "ID do cliente com formatação errada!")
+
     return orders_service.create_order(order)
 
 
