@@ -4,6 +4,12 @@ from typing import Optional
 from fastapi_pagination.ext.sqlalchemy import paginate
 import re
 from jose import jwt
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+SECRET_KEY_USER = os.getenv('SECRET_KEY_USER')
 
 from application.users_service import UsersService
 from persistence.db_utils import get_engine
@@ -313,3 +319,16 @@ async def del_user(id: int, current_user: Users = Depends(users_service.get_curr
     verify_role(current_user)
 
     return users_service.delete_user(id)
+
+
+@router.post('/firstuser', status_code = status.HTTP_201_CREATED, response_model = UsersRead)
+async def first_user(user: UsersCreate, secret_key: str):
+
+    if secret_key == str(SECRET_KEY_USER):
+
+        return users_service.create_user(user)
+    
+    else:
+
+        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = 'Chave errada!')
+    
